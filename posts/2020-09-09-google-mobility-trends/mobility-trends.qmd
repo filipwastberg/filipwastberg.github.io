@@ -1,0 +1,69 @@
+---
+title: "Mobilitetstrender från Apple och Google"
+author: "Filip Wästberg"
+date: "2020-09-09"
+categories: [open data]
+image: preview.png
+---
+
+Under 2020 har det släppts flera nya R-paket som fokuserar på Covid19. Bland annat har ett initiativ av John Hopkins University tagits fram där man försökt standardisera många av de datakällor som finns för covid-relaterad data.
+
+Ett av dessa är Apple respektive Google's mobilitetsdata som de båda techgiganterna släppte öppet i våras. 
+
+Data finns (bland annat) i paketet `covmobility`. Apple har släppt data som baseras på antalet förfrågningar för vägbeskrivningar för respektive färdmedel. Det är inte lika tydligt hur Google beräknar sin mobilitet men antagligen baseras den mer på platsdata då Google's data dels täcker rörelse i parker, besök i mataffärer m.m.
+
+Vi kan ladda ner paketen vi behöver:
+
+```{r eval=FALSE}
+remotes::install_github("kjhealy/covmobility")
+install.packages("tidyverse")
+```
+
+Paketet är enkelt att använda. Här laddar vi in data, filtrerar ut Sverige och visualiserar:
+
+```{r warning=FALSE, message=FALSE}
+library(covmobility)
+library(tidyverse)
+
+data(apple_mobility)
+
+apple_mobility %>% 
+  filter(region == "Sweden" & date < '2020-09-09') %>% 
+  ggplot(aes(x = date, y = score, color = transportation_type)) +
+  geom_line() +
+  scale_x_date(breaks = scales::pretty_breaks(12)) +
+  theme_minimal() +
+  scale_color_viridis_d() +
+  labs(
+    title = "Mobilitetstrend",
+    subtitle = "Apple's index för mobilitet: mäts genom antal förfrågningar på vägbeskrivningar.",
+    caption = "Källa: Apple ",
+    x = "",
+    y = "Index",
+    color = ""
+  )
+```
+
+Vi kan jämföra länder mot varandra.
+
+```{r}
+apple_mobility %>% 
+  filter(region %in% c("Sweden", "Finland", "Norway", "Denmark") & date < '2020-09-09') %>% 
+  ggplot(aes(x = date, y = score, color = region)) +
+  geom_line() +
+  scale_x_date(breaks = scales::pretty_breaks(12)) +
+  theme_minimal() +
+  scale_color_viridis_d() +
+  labs(
+    title = "Mobilitetstrend",
+    subtitle = "Apple's index för mobilitet: mäts genom antal förfrågningar på vägbeskrivningar.",
+    caption = "Källa: Apple",
+    x = "",
+    y = "Index",
+    color = ""
+  ) +
+    facet_grid(rows = vars(transportation_type), scales = "free")
+```
+
+Du kan undersöka data mer på Githubsidan för covmobility: https://github.com/kjhealy/covmobility/
+

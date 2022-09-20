@@ -1,0 +1,26 @@
+---
+title: "About"
+image: filip-wastberg-headshot.png
+about:
+  template: jolla
+  links:
+    - icon: twitter
+      text: Twitter
+      href: https://twitter.com/filipwastberrrg
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/filipwastberg/
+    - icon: github
+      text: Github
+      href: https://github.com/filipwastberg
+    - icon: mail
+      text: Mail
+      href: mailto:filip.wastberg@gmail.com
+
+---
+
+Hi!
+
+My name is Filip Wästberg and I'm a Data Science Consultant at Solita Sweden. This is my personal blog where I write about data stuff that interest me, mostly in Swedish.
+
+

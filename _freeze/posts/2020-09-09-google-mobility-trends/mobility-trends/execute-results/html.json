@@ -1,0 +1,16 @@
+{
+  "hash": "f890e8c55a5c74e8ca065074f882450a",
+  "result": {
+    "markdown": "---\ntitle: \"Mobilitetstrender från Apple och Google\"\nauthor: \"Filip Wästberg\"\ndate: \"2020-09-09\"\ncategories: [open data]\nimage: preview.png\n---\n\n\nUnder 2020 har det släppts flera nya R-paket som fokuserar på Covid19. Bland annat har ett initiativ av John Hopkins University tagits fram där man försökt standardisera många av de datakällor som finns för covid-relaterad data.\n\nEtt av dessa är Apple respektive Google's mobilitetsdata som de båda techgiganterna släppte öppet i våras. \n\nData finns (bland annat) i paketet `covmobility`. Apple har släppt data som baseras på antalet förfrågningar för vägbeskrivningar för respektive färdmedel. Det är inte lika tydligt hur Google beräknar sin mobilitet men antagligen baseras den mer på platsdata då Google's data dels täcker rörelse i parker, besök i mataffärer m.m.\n\nVi kan ladda ner paketen vi behöver:\n\n\n::: {.cell}\n\n```{.r .cell-code}\nremotes::install_github(\"kjhealy/covmobility\")\ninstall.packages(\"tidyverse\")\n```\n:::\n\n\nPaketet är enkelt att använda. Här laddar vi in data, filtrerar ut Sverige och visualiserar:\n\n\n::: {.cell}\n\n```{.r .cell-code}\nlibrary(covmobility)\nlibrary(tidyverse)\n\ndata(apple_mobility)\n\napple_mobility %>% \n  filter(region == \"Sweden\" & date < '2020-09-09') %>% \n  ggplot(aes(x = date, y = score, color = transportation_type)) +\n  geom_line() +\n  scale_x_date(breaks = scales::pretty_breaks(12)) +\n  theme_minimal() +\n  scale_color_viridis_d() +\n  labs(\n    title = \"Mobilitetstrend\",\n    subtitle = \"Apple's index för mobilitet: mäts genom antal förfrågningar på vägbeskrivningar.\",\n    caption = \"Källa: Apple \",\n    x = \"\",\n    y = \"Index\",\n    color = \"\"\n  )\n```\n\n::: {.cell-output-display}\n![](mobility-trends_files/figure-html/unnamed-chunk-2-1.png){width=672}\n:::\n:::\n\n\nVi kan jämföra länder mot varandra.\n\n\n::: {.cell}\n\n```{.r .cell-code}\napple_mobility %>% \n  filter(region %in% c(\"Sweden\", \"Finland\", \"Norway\", \"Denmark\") & date < '2020-09-09') %>% \n  ggplot(aes(x = date, y = score, color = region)) +\n  geom_line() +\n  scale_x_date(breaks = scales::pretty_breaks(12)) +\n  theme_minimal() +\n  scale_color_viridis_d() +\n  labs(\n    title = \"Mobilitetstrend\",\n    subtitle = \"Apple's index för mobilitet: mäts genom antal förfrågningar på vägbeskrivningar.\",\n    caption = \"Källa: Apple\",\n    x = \"\",\n    y = \"Index\",\n    color = \"\"\n  ) +\n    facet_grid(rows = vars(transportation_type), scales = \"free\")\n```\n\n::: {.cell-output-display}\n![](mobility-trends_files/figure-html/unnamed-chunk-3-1.png){width=672}\n:::\n:::\n\n\nDu kan undersöka data mer på Githubsidan för covmobility: https://github.com/kjhealy/covmobility/\n\n",
+    "supporting": [
+      "mobility-trends_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
