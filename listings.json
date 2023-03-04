@@ -2,6 +2,8 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/2023-03-03-python-and-quarto/python-and-quarto.html",
+      "/posts/2023-02-07-python-envs/python-envs.html",
       "/posts/2022-09-19-analysera-valet/analysera-valet.html",
       "/posts/2020-09-09-google-mobility-trends/mobility-trends.html",
       "/posts/2020-08-17-databaser-i-r/databaser-i-r.html",

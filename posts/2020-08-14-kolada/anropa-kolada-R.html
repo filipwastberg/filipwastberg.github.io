@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.335">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Filip Wästberg">
+<meta name="dcterms.date" content="2020-08-14">
+
+<title>filipwastberg - Hämta data från Kolada till R</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">filipwastberg</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">
+ <span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/filipwastberg"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/filipwastberrrg"><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Hämta data från Kolada till R</h1>
+                                <div class="quarto-categories">
+                <div class="quarto-category">open data</div>
+                <div class="quarto-category">kolada</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Filip Wästberg </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">August 14, 2020</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<p>I ett tidigare inlägg tittade jag på hur man kan <a href="https://dataland.rbind.io/blog/hamta-data-direkt-fr%C3%A5n-scb-till-r/">hämta data direkt från SCB till R</a> med hjälp av paketet <code>pxweb</code>.</p>
+<p>SCB har massa intressant data men mycket är på en nationell nivå. En annan datakälla, som är helt inriktad på kommunal och regional statistik, är Kolada, som är Sveriges kommuner och regioners (SKR) webbtjänst för regional statistik.</p>
+<p>Likt SCB har Kolada ett gränssnitt på webben, och precis som SCB har de också ett öppet API. Love Hansson, som är analytiker på Pensionsmyndigheten, har byggt ett paket för att anropa Kolada från R. Det här innebär att om du jobbar mycket med kommunal eller regional statistik kan du med hjälp av R-skript automatisera all inhämtning och rapportering av regional statistik från Kolada.</p>
+<section id="rkolada" class="level2">
+<h2 class="anchored" data-anchor-id="rkolada">rKolada</h2>
+<p>Paketet installeras enkelt med <code>install.packages("rKolada")</code>.</p>
+<p>För att få en övergripande bild över Koladas datamodell och paketet <code>rKolada</code> kan jag varmt rekommendera Love Hanssons vignette som finns <a href="https://lchansson.github.io/rKolada/articles/introduction-to-rkolada.html">här</a>.</p>
+</section>
+<section id="hur-kolada-fungerar" class="level2">
+<h2 class="anchored" data-anchor-id="hur-kolada-fungerar">Hur Kolada fungerar</h2>
+<p>På Koladas hemsida kan du enkelt söka efter olika KPI-er. Där kan du också få en enkel tabell och visualisering av resultatet. <code>rKolada</code> ger oss möjlighet att programmatiskt ta ut dessa tabeller, vilket underlättar om vi behöver ta ut statistik fler gånger än en.</p>
+<p>Med funktionen <code>get_kpi()</code> får vi en tabell med alla KPI-er som finns tillgängliga.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rKolada)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>kpis <span class="ot">&lt;-</span> <span class="fu">get_kpi</span>()</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>kpis</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5,522 × 13
+   auspices description      has_ou_data id    is_divided_by_g… municipality_ty…
+   &lt;chr&gt;    &lt;chr&gt;            &lt;lgl&gt;       &lt;chr&gt;            &lt;int&gt; &lt;chr&gt;           
+ 1 E        Personalkostnad… NA          N000…                0 K               
+ 2 E        Personalkostnad… FALSE       N000…                0 K               
+ 3 X        Kommunalekonomi… FALSE       N000…                0 K               
+ 4 &lt;NA&gt;     Externa intäkte… FALSE       N000…                0 K               
+ 5 &lt;NA&gt;     Inkomstutjämnin… FALSE       N000…                0 K               
+ 6 &lt;NA&gt;     Kostnadsutjämni… FALSE       N000…                0 K               
+ 7 X        Regleringsbidra… FALSE       N000…                0 K               
+ 8 &lt;NA&gt;     Utjämningssyste… FALSE       N000…                0 K               
+ 9 X        Införandebidrag… FALSE       N000…                0 K               
+10 X        Strukturbidrag,… FALSE       N000…                0 K               
+# … with 5,512 more rows, and 7 more variables: operating_area &lt;chr&gt;,
+#   ou_publication_date &lt;chr&gt;, perspective &lt;chr&gt;, prel_publication_date &lt;chr&gt;,
+#   publ_period &lt;chr&gt;, publication_date &lt;chr&gt;, title &lt;chr&gt;</code></pre>
+</div>
+</div>
+<p>Vi kan filtrera dessa med <code>dplyr</code> och <code>stringr</code> eller använda den inbyggda funktionen <code>kpi_search()</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>kpi_bygglov <span class="ot">&lt;-</span> <span class="fu">kpi_search</span>(kpis, <span class="fu">c</span>(<span class="st">"bostäder som beviljats bygglov"</span>), <span class="at">column =</span> <span class="st">"description"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>kpi_bygglov</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 13
+  auspices description       has_ou_data id    is_divided_by_g… municipality_ty…
+  &lt;chr&gt;    &lt;chr&gt;             &lt;lgl&gt;       &lt;chr&gt;            &lt;int&gt; &lt;chr&gt;           
+1 X        Antal bostäder s… FALSE       N079…                0 K               
+# … with 7 more variables: operating_area &lt;chr&gt;, ou_publication_date &lt;chr&gt;,
+#   perspective &lt;chr&gt;, prel_publication_date &lt;chr&gt;, publ_period &lt;chr&gt;,
+#   publication_date &lt;chr&gt;, title &lt;chr&gt;</code></pre>
+</div>
+</div>
+<p>För att få ner data för detta KPI behöver 1) ett ID och 2) specificera vilken eller vilka kommuner du vill ha data för.</p>
+<p>ID får du enkelt ut genom <code>kpi_extract_ids()</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">kpi_extract_ids</span>(kpi_bygglov)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "N07925"</code></pre>
+</div>
+</div>
+<p>De kommuner, eller regionala indelningar som finns, kan vi på motsvarande sätt få genom <code>get_municipality()</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_municipality</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 312 × 3
+   id    title      type 
+   &lt;chr&gt; &lt;chr&gt;      &lt;chr&gt;
+ 1 1440  Ale        K    
+ 2 1489  Alingsås   K    
+ 3 0764  Alvesta    K    
+ 4 0604  Aneby      K    
+ 5 1984  Arboga     K    
+ 6 2506  Arjeplog   K    
+ 7 2505  Arvidsjaur K    
+ 8 1784  Arvika     K    
+ 9 1882  Askersund  K    
+10 2084  Avesta     K    
+# … with 302 more rows</code></pre>
+</div>
+</div>
+<p>En bra sak med Kolada är att de för alla Sveriges kommuner har referenskommuner, kommuner som på olika sätt liknar kommunen du är intresserad av. På så sätt kan vi enkelt ta fram kommuner som är relevanta att jämföra med. I <code>rKolada</code> gör vi det med <code>get_municipality_groups()</code> och den tillhörande <em>search</em>-funktionen.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_municipality_groups</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">municipality_grp_search</span>(<span class="st">"Finspång"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 11 × 3
+   id      members      title                                               
+   &lt;chr&gt;   &lt;list&gt;       &lt;chr&gt;                                               
+ 1 G175948 &lt;df [7 × 2]&gt; Liknande kommuner ekonomiskt bistånd, Finspång, 2020
+ 2 G176238 &lt;df [7 × 2]&gt; Liknande kommuner socioekonomi, Finspång, 2020      
+ 3 G176528 &lt;df [7 × 2]&gt; Liknande kommuner äldreomsorg, Finspång, 2021       
+ 4 G35908  &lt;df [7 × 2]&gt; Liknande kommuner grundskola, Finspång, 2021        
+ 5 G36200  &lt;df [7 × 2]&gt; Liknande kommuner gymnasieskola, Finspång, 2021     
+ 6 G36492  &lt;df [7 × 2]&gt; Liknande kommuner IFO, Finspång, 2021               
+ 7 G37368  &lt;df [7 × 2]&gt; Liknande kommuner, övergripande, Finspång, 2021     
+ 8 G39541  &lt;df [7 × 2]&gt; Liknande kommuner LSS, Finspång, 2021               
+ 9 G85502  &lt;df [7 × 2]&gt; Liknande kommuner fritidshem, Finspång, 2021        
+10 G85794  &lt;df [7 × 2]&gt; Liknande kommuner förskola, Finspång, 2021          
+11 G87668  &lt;df [7 × 2]&gt; Liknande kommuner integration, Finspång, 2021       </code></pre>
+</div>
+</div>
+<p>I slutändan har vi nu all metadata vi behöver och vill då få in den faktiska datan. För att få tag i den använder vi bara <code>get_values()</code>, då får vi tillbaka en data.frame med all data som vi frågat efter.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>kpi_id <span class="ot">&lt;-</span> <span class="fu">kpi_search</span>(kpis, <span class="fu">c</span>(<span class="st">"bostäder som beviljats bygglov"</span>),</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">column =</span> <span class="st">"description"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kpi_extract_ids</span>()</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>munic_grp <span class="ot">&lt;-</span> <span class="fu">get_municipality_groups</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">municipality_grp_search</span>(<span class="st">"Liknande kommuner socioekonomi, Finspång"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">municipality_grp_extract_ids</span>()</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>finspang_id <span class="ot">&lt;-</span> <span class="fu">get_municipality</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">municipality_search</span>(<span class="st">"Finspång"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">municipality_extract_ids</span>()</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Get values</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>grp_data <span class="ot">&lt;-</span> <span class="fu">get_values</span>(</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">kpi =</span> kpi_id,</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">municipality =</span> <span class="fu">c</span>(</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    munic_grp,</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    finspang_id</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>grp_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 56 × 8
+   kpi    municipality_id  year count gender value municipality municipality_ty…
+   &lt;chr&gt;  &lt;chr&gt;           &lt;int&gt; &lt;int&gt; &lt;chr&gt;  &lt;dbl&gt; &lt;chr&gt;        &lt;chr&gt;           
+ 1 N07925 0562             2015     1 T       0.7  Finspång     K               
+ 2 N07925 1272             2015     1 T       6    Bromölla     K               
+ 3 N07925 1273             2015     1 T       1.8  Osby         K               
+ 4 N07925 1884             2015     1 T       3    Nora         K               
+ 5 N07925 1885             2015     1 T       5.6  Lindesberg   K               
+ 6 N07925 1961             2015     1 T       3.6  Hallstahamm… K               
+ 7 N07925 1981             2015     1 T       3.8  Sala         K               
+ 8 N07925 1984             2015     1 T       0.9  Arboga       K               
+ 9 N07925 0562             2016     1 T       3.62 Finspång     K               
+10 N07925 1272             2016     1 T       5.15 Bromölla     K               
+# … with 46 more rows</code></pre>
+</div>
+</div>
+<p>Vi har nu data som antingen kan visualiseras, inkluderas i en Rmarkdown-genererad PDF-rapport, skrivas till en Excel, PowerPoint, lagra i en databas med mera.</p>
+<p>Här nöjer vi oss med en enkel visualisering:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(grp_data, <span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> value, <span class="at">color =</span> municipality)) <span class="sc">+</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Antal bostäder som beviljats bygglov under två senaste åren"</span>,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Antal/100 invånare"</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Källa: SKR och SCB"</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Antal/1000 invånare"</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"År"</span>,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"Kommun"</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  ggthemes<span class="sc">::</span><span class="fu">scale_color_colorblind</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="anropa-kolada-R_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Ett stort tack till Love Hansson som lagt tid på att designa ett paket som jag tror kan underlätta för många analytiker på myndigheter, universitet och ute bland Sveriges kommuner och landsting.</p>
+<p>/ Filip</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
