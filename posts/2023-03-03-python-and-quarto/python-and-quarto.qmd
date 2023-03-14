@@ -3,7 +3,6 @@ title: "Python in Quarto"
 author: "Filip Wästberg"
 date: "2023-03-03"
 categories: [python]
-jupyter: pyds
 image: minions.jpg
 ---
 
@@ -28,12 +27,12 @@ image: minions.png
 
 So I had created an environment based on a conda.yaml file like this:
 
-```{bash eval=FALSE}
+```
 conda env create -f conda_env.yml
 ```
 
 And activate it 
-```{bash eval=FALSE}
+```
 conda activate pyds 
 ```
 
@@ -66,6 +65,6 @@ However, to be able to use this environment in Quarto I have to register it to j
 
 I did that like this:
 
-```{bash eval=FALSE}
+```
 python -m ipykernel install --user --name=pyds
 ```

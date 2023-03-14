@@ -12,7 +12,7 @@ website:
         href: https://twitter.com/filipwastberrrg
 format:
   html:
-    theme: literal
+    theme: minty
     css: styles.css
 execute:
   freeze: auto
