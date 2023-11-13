@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/2023-10-31-shiny-python-azure/deploying-shiny-in-azure.html",
       "/posts/2023-10-25-old-buildings/2023-old-buildings.html",
       "/posts/2023-03-03-python-and-quarto/python-and-quarto.html",
       "/posts/2023-02-07-python-envs/python-envs.html",
