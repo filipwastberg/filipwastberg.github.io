@@ -1,0 +1,168 @@
+---
+title: "Deploying a Python Shiny application in Azure"
+author: "Filip Wästberg"
+date: "2023-11-14"
+categories: [python, shiny]
+image: hacker.png
+---
+
+The Shiny for Python library has been general available for around half a year and we've seen some interesting developments in the community. However, not that much has been written about deployment. In this post I'll write about how you can deploy a Shiny for Python application as an Azure Web App and I'll also write about some important limitations with this.
+
+The easiest way to deploy Shiny for Python dashboards is by using [ShinyApps.io](https://www.shinyapps.io/) or [Posit Connect](https://posit.co/products/enterprise/connect/). I cannot emphasize enough how good of a product especially Posit Connect is. It makes all this so easy (by this point you've probably realized that I work for a company ([Solita](https://www.solita.fi/posit/)) that is a partner to Posit). But maybe you are an alone Data Scientist at a company, or maybe your organization are reluctant to invest in enterprise products, but you still want to share your app.
+
+## In comes Azure
+
+For many of our clients, Azure is by far the most popular cloud platform. Azure also has a service called Azure Web Apps with a promising overview:
+
+> Quickly build, deploy, and scale web apps and APIs on your terms. Work with [.NET](https://go.microsoft.com/fwlink/?linkid=2220825), [.NET Core](https://go.microsoft.com/fwlink/?linkid=2220911), [Node.js](https://go.microsoft.com/fwlink/?linkid=2220912), [Java](https://go.microsoft.com/fwlink/?linkid=2220913), [Python](https://go.microsoft.com/fwlink/?linkid=2220914), or PHP in containers, or running on Windows or Linux. Meet rigorous, enterprise-grade performance, and security and compliance requirements with a trusted, fully managed service that handles more than 60 billion requests per day.
+
+So, in this blog post I'd like to show you how you can deploy a Shiny for Python app on Azure Web App Services.
+
+## Shiny for Python is awesome
+
+The first thing we need to do in order to deploy our app is to develop the actual app. I must say that it was a great experience to get started with Shiny for Python. Initially, I was a bit skeptical. How would Shiny translate to a more generic language like Python? Well, the Shiny team have made a remarkable job. To me, Shiny almost feels more intuitive in Python than in R.
+
+For example, in Shiny you create reactive expressions with functions:
+
+```{r eval=FALSE}
+dataInput <- reactive({
+  getSymbols(input$symb, src = "yahoo",
+    from = input$dates[1],
+    to = input$dates[2],
+    auto.assign = FALSE)
+})
+```
+
+In Python we also create functions but we use @decorators to define what kind of reactive expressions our functions should be. I think it looks great and makes use of already known code practices in Python. What's even better is that in Shiny for Python we use decorators for everything. Reactive elements, building modules etc.
+
+```{python}
+#| eval: false
+@reactive.Calc
+def muni_filter():
+    target_muni_values = input.muni()
+    df = data.filter(pl.col("kommun").is_in(target_muni_values)
+    return df
+```
+
+Working with modules in Shiny for Python felt more natural compared to how it feels in R. This is probably because modules is already a known concept in Python. And finally, we are getting rid of the hideous CamelCases 🤢 used in Shiny for R.
+
+Anyway, the app that we're going to use can be found [here](https://github.com/posit-dev/py-shiny/blob/7ba8f90a44ee25f41aa8c258eceeba6807e0017a/examples/load_balance/app.py). It is an app to test that sticky sessions is configured when using load balancing. Azure Web Apps promise auto-scaling but I haven't really delved deeper into it. My gut feeling is to be careful around promising auto-scaling for Shiny since we need sticky sessions and websockets.
+
+I use VSCode to develop my Shiny for Python apps. So far it has worked really well. After developing an app, or during the process, I create a requirements file `requirements.txt` based on a simple Virtual Environemnt (venv) that will be used to build a docker image of the app.
+
+## Creating a Docker image
+
+I found a really good resource at the company [Analythium's Github page](https://github.com/analythium/shiny-load-balancing#py-shiny-app) where they test different hosting options for Shiny. Be sure to also check out their [Youtube-series](https://www.youtube.com/watch?v=-bCtShSHsfA) on the matter. The Docker image for my app look like this:
+
+```{bash}
+#| eval: false
+FROM python:3.10
+
+RUN addgroup --system app && adduser --system --ingroup app app
+WORKDIR /home/app
+RUN chown app:app -R /home/app
+
+# Install requirements
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
+
+# Copy the app
+COPY . .
+
+# Run app on port 8080
+USER app
+
+ENV PORT 8080
+EXPOSE 8080
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
+```
+
+If you have used Python FastAPI before this will look similar.
+
+Building the Docker image depends on the system that you are running it on. This was a hassle for me (Mac M2) but what worked in the end was this:
+
+```{bash}
+#| eval: false
+docker build --platform=linux/arm64/v8 -t shiny-azure:0.1 . 
+docker run --platform=linux/arm64/v8 -p 8080:8080 shiny-azure:0.1
+```
+
+## Deploying to Azure
+
+There are several ways to deploy a docker image to Azure. You can do it by creating everything manually in the [Azure Portal](https://docs.microsoft.com/en-gb/azure/container-registry/container-registry-get-started-portal) or with the [VSCode plugin](https://learn.microsoft.com/en-gb/azure/app-service/quickstart-custom-container?tabs=dotnet&pivots=container-linux-vscode). However, I always find that the easiest way to do this is using a CLI-tool. It also makes it sort of reproducible. So I'm going to show you how to do it with the [`azure CLI`](https://learn.microsoft.com/en-us/cli/azure/?view=azure-cli-latest) here.
+
+### Resource group
+
+After we've authenticated to Azure we need to create a resource group that will be used for billing etc.
+
+```{bash}
+#| eval: false
+az group create --name filipw-azure-shiny --location northeurope
+```
+
+### Azure container registry and App service
+
+Next, we need to create a container registry and an app service with a pricing plan.
+
+```{bash}
+#| eval: false
+## create container registry
+az acr create -n shinypython -g filipw-azure-shiny --sku Basic
+## create app service plan
+az appservice plan create -g filipw-azure-shiny -n shinypython-plan --sku B1 --is-linux
+```
+
+### Publish the container
+
+The `az acr create` command creates a Docker registry called `shinypython.azurecr.io` that you need to authenticate against. The way you do this is by going into your ACR -\> Access keys -\> Admin enable and use the username and password provided there. To login you use this command:
+
+```{bash}
+#| eval: false
+docker login shinypython.azurecr.io
+```
+
+You want to tag your Docker container with the URL provided by Azure, i.e. `shinypython.azurecr.io` you can do this with the tag command:
+
+```{bash}
+#| eval: false
+docker tag shiny-azure:0.1 shinypython.azurecr.io/shiny-azure
+```
+
+Pushing the image was a little bit tricky for me. But it can be good to remember that Shiny is built using the same technology as FastAPI. So by following a tutorial on how to deploy FastAPI to Azure I made it work.
+
+```{bash}
+#| eval: false
+docker buildx build --push --platform linux/amd64 -t shinypython.azurecr.io/shiny-azure .
+```
+
+### Deploying to Azure App Service
+
+We can create a web app with this command:
+
+```{bash}
+#| eval: false
+az webapp create -g filipw-azure-shiny -p shinypython-plan -n shiny-azure -i shinypython.azurecr.io/shiny-azure
+```
+
+### Change port
+
+In the Docker container we run our application on port 8080. We need to add this port for the application in Azure. Again, we can do this through the Azure CLI:
+
+```{bash}
+#| eval: false
+az webapp config appsettings set --resource-group filipw-azure-shiny --name shinypython --settings WEBSITES_PORT=8080
+```
+
+## Wait...
+
+Alright, Azure provides us with a URL for our web application: in this case <https://shiny-azure.azurewebsites.net/>. Usually you need to wait a couple of minutes for the application to start up properly.
+
+## Something went wrong, where's the log?
+
+The first thing to always test is that the Docker container runs on your machine. But even if it does there might be problem. At least it happened to me, which resulted in me finding out that I needed the `buildx` command to get everything to work in Azure. I found that the best way to find out what is happening in the app is by accessing the Log Stream under the App Service in Azure. I'm sure that there are better ways, but it worked for this simple app.
+
+## Limitations - Let's talk about scale baby
+
+This example shows how you deploy a Shiny for Python application to Azure Web Apps. However, the service plan that we're using is a relatively small one, meant for testing. If your app requires more memory, maybe for a machine learning pipeline or crunching a big data set, I'm not entirely sure what will happen. What's more, if many people try to access your app at the same time, you will need some sort of load balancing strategy. As I said in the beginning this can be non-trivial for Shiny since you need sticky sessions to make sure that each user ends up at the same session when refreshing an app.
+
+This is probably the reason why there are products like Posit Connect (which you btw can run in Azure); they make hosting a lot easier (it is what you pay for). If you are a team and have many apps and other Data Science workloads like scheduled pipelines and ML APIs, it might be worth to invest in enterprise software compared to the hours you'd have to spend (or buy from consultants like me) to configure Azure Web Apps or something similar. Some food for thought, from a biased R-blogger.
